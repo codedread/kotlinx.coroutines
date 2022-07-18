@@ -10,16 +10,5 @@ import kotlin.test.*
 /** These are tests that we want to fail. They are here so that, when the issue is fixed, their failure indicates that
  * everything is better now. */
 class FailingTests {
-    @Test
-    fun testRunTestLoopShutdownOnTimeout() = testResultMap({ fn ->
-        assertFailsWith<IllegalStateException> { fn() }
-    }) {
-        runTest(dispatchTimeoutMs = 1) {
-            withContext(Dispatchers.Default) {
-                delay(10000)
-            }
-            fail("shouldn't be reached")
-        }
-    }
 
 }
