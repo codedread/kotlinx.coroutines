@@ -25,10 +25,11 @@ apply from: rootProject.file('gradle/publish.gradle')
      js -----------------------------------------------------+
                                                              |
                                                              V
-     jvm -------------------------------> concurrent ---> common
-                                              ^
-     ios     \                                |
-     macos   | ---> nativeDarwin ---> native --+
+     TODO explain --------> jvm ---------> concurrent ---> common
+                                        ^
+                                        |
+     ios     \                          |
+     macos   | ---> nativeDarwin ---> native ---+
      tvos    |                         ^
      watchos /                         |
                                        |
@@ -68,15 +69,12 @@ if (rootProject.ext.native_targets_enabled) {
 
 /* ========================================================================== */
 
+
 /*
  * All platform plugins and configuration magic happens here instead of build.gradle
  * because JMV-only projects depend on core, thus core should always be initialized before configuration.
  */
 kotlin {
-    sourceSets.forEach {
-        SourceSetsKt.configureMultiplatform(it)
-    }
-
     /*
      * Configure two test runs:
      * 1) New memory model, Main thread
@@ -104,12 +102,37 @@ kotlin {
         }
     }
 
+    def jvmMain = sourceSets.jvmMain
+    def jvmCoreMain = sourceSets.create('jvmCoreMain')
+    def jdk8Main = sourceSets.create('jdk8Main')
+    def jdk8Test = sourceSets.create('jdk8Test')
+    jvmCoreMain.dependsOn(jvmMain)
+    jdk8Main.dependsOn(jvmMain)
+    jdk8Test.dependsOn(jdk8Main)
+
+    sourceSets.forEach {
+        SourceSetsKt.configureMultiplatform(it)
+    }
+
+    jvm {
+        def main = compilations.main
+        main.source(jvmCoreMain)
+        main.source(jdk8Main)
+
+        /* Create compilation for jvmCore to prove that jvmMain does not rely on jdk8 */
+        compilations.create('CoreMain') {
+            /* jvmCore is automatically matched as 'defaultSourceSet' for the compilation */
+            tasks.getByName('check').dependsOn(compileKotlinTaskProvider)
+        }
+    }
+}
+
+kotlin {
     jvm {
         // For animal sniffer
         withJava()
     }
 }
-
 
 configurations {
     configureKotlinJvmPlatform(kotlinCompilerPluginClasspath)
@@ -169,6 +192,10 @@ kotlin.sourceSets {
         api "org.jetbrains.kotlinx:kotlinx-knit-test:$knit_version"
         implementation project(":android-unit-tests")
         implementation "org.openjdk.jol:jol-core:0.16"
+    }
+
+    jdk8Test.dependencies {
+        api "org.jetbrains.kotlin:kotlin-test-junit:$kotlin_version"
     }
 }
 
