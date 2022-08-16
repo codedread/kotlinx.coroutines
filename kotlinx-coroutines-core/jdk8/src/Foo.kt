@@ -6,3 +6,4 @@ package kotlinx.coroutines
 import java.util.stream.Stream
 
 public fun somePublicFun(): Stream<Int> = Stream.empty()
+

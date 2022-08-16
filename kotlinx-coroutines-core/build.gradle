@@ -105,10 +105,8 @@ kotlin {
     def jvmMain = sourceSets.jvmMain
     def jvmCoreMain = sourceSets.create('jvmCoreMain')
     def jdk8Main = sourceSets.create('jdk8Main')
-    def jdk8Test = sourceSets.create('jdk8Test')
     jvmCoreMain.dependsOn(jvmMain)
     jdk8Main.dependsOn(jvmMain)
-    jdk8Test.dependsOn(jdk8Main)
 
     sourceSets.forEach {
         SourceSetsKt.configureMultiplatform(it)
@@ -192,10 +190,6 @@ kotlin.sourceSets {
         api "org.jetbrains.kotlinx:kotlinx-knit-test:$knit_version"
         implementation project(":android-unit-tests")
         implementation "org.openjdk.jol:jol-core:0.16"
-    }
-
-    jdk8Test.dependencies {
-        api "org.jetbrains.kotlin:kotlin-test-junit:$kotlin_version"
     }
 }
 
